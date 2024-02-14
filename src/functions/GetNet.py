@@ -99,36 +99,37 @@ def getIP():
 
 def getDNS():
     try:
-        output = subprocess.getoutput("ipconfig /displaydns")
-    #    print("DNS Output:")
+        output = os.popen("ipconfig /displaydns").read()
     except Exception as e:
         print("Error executing 'ipconfig /displaydns':", e)
         return []
 
     return output
 
+
 def getMAC():
     try:
-        output = subprocess.getoutput("getmac")
-    #    print("MAC Output:")
+        output = os.popen("getmac /fo table /nh").read()  # Utilizziamo il formato tabellare
     except Exception as e:
         print("Error executing 'getmac':", e)
-        return []
+        return "Error executing 'getmac': " + str(e)
 
-    adapters = []
-    adapter = {}
-    for line in output.split('\n'):
-        if "Physical Address" in line:
-            if adapter:
-                adapters.append(adapter)
-            adapter = {}
-            adapter["Physical Address"] = line.split()[0]
-            adapter["Name"] = line.split()[1]
+    result = ""
 
-    if adapter:
-        adapters.append(adapter)
+    # Utilizziamo un'espressione regolare per estrarre i nomi dei trasporti
+    transport_pattern = re.compile(r"^(.*?)\s{2,}(.*?)$", re.IGNORECASE | re.MULTILINE)
 
-    return adapters
+    transport_matches = transport_pattern.findall(output)
+
+    for transport_match in transport_matches:
+        mac_address = transport_match[0].strip()  # Estraiamo l'indirizzo MAC dalla prima colonna
+        transport_name = transport_match[1].strip()  # Estraiamo il nome del trasporto dalla seconda colonna
+        result += "\n\n"  # Aggiungiamo una riga vuota tra i record
+        result += "Physical Address: " + mac_address + "\n"
+        result += "Transport Name: " + transport_name + "\n"
+        result += "\n"  # Aggiungiamo una riga vuota tra i record
+
+    return result  # Rimuoviamo eventuali spazi vuoti aggiuntivi alla fine
 
 def getNET():
     return f"\n\n\n\nWLAN:\n{getWLAN()}\n\n\nLAN:\n{getLAN()}\n\n\nIP:\n{getIP()}\n\n\nDNS:\n{getDNS()}\n\n\nMAC:\n{getMAC()}"

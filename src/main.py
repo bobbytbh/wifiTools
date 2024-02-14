@@ -28,7 +28,7 @@ def main():
             print("Please wait while we try to retrive informations")
             a = gn.getNET()
             print(a)
-        elif scelta == '4':
+        elif scelta == '7':
             break
 
 if __name__ == '__main__':
